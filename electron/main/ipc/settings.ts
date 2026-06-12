@@ -1,5 +1,6 @@
-import { readdir, stat, copyFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { readdir, stat, copyFile, mkdir, rm, writeFile, readFile } from 'node:fs/promises'
+import { join, basename } from 'node:path'
+import { app } from 'electron'
 import type { SettingsFile, EsiServer } from './types.js'
 import { getCachedCharNames, setCachedCharNames } from './store.js'
 import { httpsPost } from './http.js'
@@ -85,5 +86,55 @@ export async function resolveCharNames(
 }
 
 export async function copySettings(srcPath: string, destPaths: string[]): Promise<void> {
+  // Snapshot the current target files first so the copy can be undone (one level).
+  const dir = undoDir()
+  await rm(dir, { recursive: true, force: true })
+  await mkdir(dir, { recursive: true })
+  const entries: Array<{ dest: string; snap: string }> = []
+  for (const dest of destPaths) {
+    try {
+      const snap = join(dir, basename(dest))
+      await copyFile(dest, snap)
+      entries.push({ dest, snap })
+    } catch {
+      // Target may not exist yet (nothing to snapshot for that one)
+    }
+  }
+  await writeFile(join(dir, 'manifest.json'), JSON.stringify({ createdAt: Date.now(), srcPath, entries }), 'utf8')
+
   await Promise.all(destPaths.map(dest => copyFile(srcPath, dest)))
+}
+
+function undoDir(): string {
+  return join(app.getPath('userData'), '.undo-last-copy')
+}
+
+/** Restores the files captured before the most recent copy. Returns count restored. */
+export async function undoLastCopy(): Promise<number> {
+  const dir = undoDir()
+  let manifest: { entries: Array<{ dest: string; snap: string }> }
+  try {
+    manifest = JSON.parse(await readFile(join(dir, 'manifest.json'), 'utf8'))
+  } catch {
+    return 0
+  }
+  let restored = 0
+  for (const { dest, snap } of manifest.entries) {
+    try {
+      await copyFile(snap, dest)
+      restored++
+    } catch { /* snapshot or dest missing — skip */ }
+  }
+  await rm(dir, { recursive: true, force: true }) // one-level undo: consume it
+  return restored
+}
+
+/** Whether an undo snapshot is currently available. */
+export async function hasUndo(): Promise<boolean> {
+  try {
+    await stat(join(undoDir(), 'manifest.json'))
+    return true
+  } catch {
+    return false
+  }
 }

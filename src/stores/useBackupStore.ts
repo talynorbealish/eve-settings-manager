@@ -17,17 +17,17 @@ export const useBackupStore = defineStore('backup', () => {
     }
   }
 
-  async function createBackup(name: string) {
+  async function createBackup(name: string, source?: string) {
     const profileStore = useProfileStore()
     if (!profileStore.activeProfile) return
-    await window.ipcRenderer.invoke('backup:create', profileStore.activeProfile.path, name)
+    await window.ipcRenderer.invoke('backup:create', profileStore.activeProfile.path, name, source)
     await loadBackups()
   }
 
-  async function createFileBackup(sourcePath: string, name: string, displayName?: string) {
+  async function createFileBackup(sourcePath: string, name: string, displayName?: string, source?: string) {
     const profileStore = useProfileStore()
     if (!profileStore.activeProfile) return
-    await window.ipcRenderer.invoke('backup:create-file', profileStore.activeProfile.path, sourcePath, name, displayName)
+    await window.ipcRenderer.invoke('backup:create-file', profileStore.activeProfile.path, sourcePath, name, displayName, source)
     await loadBackups()
   }
 
@@ -57,8 +57,13 @@ export const useBackupStore = defineStore('backup', () => {
     await loadBackups()
   }
 
+  async function renameBackup(backup: Backup, newName: string) {
+    await window.ipcRenderer.invoke('backup:rename', backup.path, newName)
+    await loadBackups()
+  }
+
   return {
     backups, loading,
-    loadBackups, createBackup, createFileBackup, restoreBackup, restoreFileBackup, deleteBackup, deleteFileBackup,
+    loadBackups, createBackup, createFileBackup, restoreBackup, restoreFileBackup, deleteBackup, deleteFileBackup, renameBackup,
   }
 })

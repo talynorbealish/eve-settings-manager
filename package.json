@@ -27,13 +27,13 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@element-plus/icons-vue": "^2.3.2",
+    "@tailwindcss/vite": "^4.3.0",
     "@vitejs/plugin-vue": "^6.0.5",
     "electron": "^41.1.1",
     "electron-builder": "^26.8.2",
     "electron-store": "^11.0.2",
-    "element-plus": "^2.13.6",
     "pinia": "^3.0.4",
+    "tailwindcss": "^4.3.0",
     "typescript": "^6.0.2",
     "vite": "^8.0.3",
     "vite-plugin-electron": "^0.29.1",

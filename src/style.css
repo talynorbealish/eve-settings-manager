@@ -1,8 +1,288 @@
+@import "tailwindcss";
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
 
+html, body, #app {
+  height: 100%;
+  margin: 0;
+}
+
+/* Interactive elements use the pointer cursor (disabled ones don't) */
+button:not(:disabled),
+[role="button"]:not(:disabled),
+label[for],
+select {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* ── Glassmorphism backdrop ──────────────────────────────────────────────
+   Mostly dark with colored glows confined to the corners, so the frosted
+   surfaces have something to refract while small text stays legible. */
+body {
+  color: #e8eaf0;
+  background:
+    radial-gradient(900px 520px at 12% -8%, rgba(99, 102, 241, 0.28), transparent 60%),
+    radial-gradient(820px 600px at 112% 18%, rgba(16, 185, 129, 0.16), transparent 55%),
+    radial-gradient(780px 560px at 50% 118%, rgba(236, 72, 153, 0.14), transparent 60%),
+    linear-gradient(160deg, #0a0a12 0%, #0c0e1a 55%, #100f1e 100%);
+  background-attachment: fixed;
+}
+
+/* Dark veil so contrast holds uniformly across the bright gradient zones */
+#app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 8, 14, 0.42);
+  pointer-events: none;
+  z-index: 0;
+}
+#app > * { position: relative; z-index: 1; }
+
+/* ── Glass primitives ────────────────────────────────────────────────────
+   Only "shell" surfaces (.glass-panel, .glass-dialog) carry real
+   backdrop-filter — there are only a handful of them. The character cards
+   use .glass-card which is a cheap translucent fill with NO per-element
+   blur, so a 276-card grid scrolls without GPU jank. */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.glass-dialog {
+  background: rgba(22, 24, 38, 0.72);
+  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Cheap glass — no backdrop-filter. Safe to repeat hundreds of times. */
+.glass-card {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.075);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 8px 28px rgba(0, 0, 0, 0.28);
+}
+
+/* Inset translucent well for lists inside dialogs */
+.glass-well {
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-input {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.glass-input:focus {
+  border-color: rgba(129, 140, 248, 0.55);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  outline: none;
+}
+
+/* Glow reserved strictly for active / selected affordances */
+.glow-indigo { box-shadow: 0 0 18px rgba(99, 102, 241, 0.28); }
+
+/* Soft vertical separator (e.g. between the sync dialog columns) */
+.col-divider {
+  width: 1px;
+  flex-shrink: 0;
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.22), transparent);
+}
+
+/* ── Ambient drifting orbs ───────────────────────────────────────────────
+   A few large, heavily-blurred color blobs that slowly drift. They sit
+   above the veil but behind the UI (z-index: -1 within the app root), so
+   they read softly through the frosted glass and add motion/depth without
+   distracting. Respects prefers-reduced-motion. */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.orb {
+  position: absolute;
+  width: 46vw;
+  height: 46vw;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.45;
+  will-change: transform;
+}
+.orb-a {
+  top: -14vw; left: -8vw;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.9), transparent 70%);
+  animation: drift-a 26s ease-in-out infinite alternate;
+}
+.orb-b {
+  top: 6vw; right: -14vw;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.75), transparent 70%);
+  animation: drift-b 32s ease-in-out infinite alternate;
+}
+.orb-c {
+  bottom: -18vw; left: 28vw;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.6), transparent 70%);
+  animation: drift-c 30s ease-in-out infinite alternate;
+}
+@keyframes drift-a { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(6vw, 5vw, 0); } }
+@keyframes drift-b { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-6vw, 7vw, 0); } }
+@keyframes drift-c { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(5vw, -6vw, 0); } }
+@media (prefers-reduced-motion: reduce) {
+  .orb { animation: none; }
+}
+
+/* Custom scrollbar — translucent to match the glass */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+  background-clip: padding-box;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LIGHT THEME  (html.light)
+   Dark is the default (no class). The light theme is frosted *white* glass
+   over a soft pastel gradient. Tailwind v4 compiles color utilities to
+   var(--color-*), so flipping the zinc scale + a few accent text shades
+   re-themes every text/border/placeholder usage at once. The white/black
+   alpha utilities compile to literal hex, so they're overridden explicitly.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+html.light {
+  /* Invert the neutral scale: zinc-100 becomes the darkest (primary text) */
+  --color-zinc-100: #18181b;
+  --color-zinc-200: #27272a;
+  --color-zinc-300: #3f3f46;
+  --color-zinc-400: #52525b;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #a1a1aa;
+  --color-zinc-700: #d4d4d8;
+  /* Darken accent *text* shades for contrast on light surfaces */
+  --color-indigo-300: #4338ca;
+  --color-indigo-400: #4338ca;
+  --color-emerald-300: #047857;
+  --color-emerald-400: #047857;
+  --color-amber-400: #b45309;
+  --color-amber-300: #b45309;
+  --color-amber-200: #92400e;
+  --color-red-400: #dc2626;
+  --color-sky-500: #0369a1;
+}
+
+html.light body {
+  color: #1f2233;
+  background:
+    radial-gradient(900px 520px at 12% -8%, rgba(99, 102, 241, 0.18), transparent 60%),
+    radial-gradient(820px 600px at 112% 18%, rgba(16, 185, 129, 0.12), transparent 55%),
+    radial-gradient(780px 560px at 50% 118%, rgba(236, 72, 153, 0.10), transparent 60%),
+    linear-gradient(160deg, #eef1f8 0%, #e7ebf5 55%, #eceaf6 100%);
+}
+html.light #app::before { background: rgba(255, 255, 255, 0.35); }
+
+/* Ambient orbs: softer and more diffuse over the bright background */
+html.light .orb { opacity: 0.32; filter: blur(110px); }
+
+/* Column separator: darker hairline on the light background */
+html.light .col-divider {
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.16), transparent);
+}
+
+/* Glass surfaces — frosted white */
+html.light .glass-panel {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+html.light .glass-dialog {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 24px 70px rgba(30, 30, 50, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+html.light .glass-card {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+html.light .glass-card:hover {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(0, 0, 0, 0.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 8px 28px rgba(30, 30, 50, 0.10);
+}
+html.light .glass-well {
+  background: rgba(0, 0, 0, 0.035);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+html.light .glass-input {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+html.light .glass-input:focus {
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+/* White-alpha tints (subtle light fills on dark) become subtle dark tints */
+html.light .bg-white\/5  { background-color: rgba(0, 0, 0, 0.05); }
+html.light .bg-white\/6  { background-color: rgba(0, 0, 0, 0.05); }
+html.light .bg-white\/8  { background-color: rgba(0, 0, 0, 0.06); }
+html.light .bg-white\/10 { background-color: rgba(0, 0, 0, 0.07); }
+html.light .bg-white\/12 { background-color: rgba(0, 0, 0, 0.09); }
+html.light .hover\:bg-white\/6:hover { background-color: rgba(0, 0, 0, 0.06); }
+html.light .hover\:bg-white\/8:hover { background-color: rgba(0, 0, 0, 0.07); }
+
+/* Dark "well" zones become light frosted zones */
+html.light .bg-black\/15 { background-color: rgba(255, 255, 255, 0.45); }
+html.light .bg-black\/20 { background-color: rgba(255, 255, 255, 0.5); }
+/* Dialog scrim: lighter in the light theme so white dialogs stay clean */
+html.light .bg-black\/70 { background-color: rgba(30, 32, 45, 0.4); }
+
+/* White borders/rings become hairline dark */
+html.light .border-white\/5 { border-color: rgba(0, 0, 0, 0.06); }
+html.light .border-white\/8 { border-color: rgba(0, 0, 0, 0.08); }
+html.light .ring-white\/5   { --tw-ring-color: rgba(0, 0, 0, 0.06); }
+html.light .ring-white\/10  { --tw-ring-color: rgba(0, 0, 0, 0.10); }
+
+/* Scrollbar */
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  background-clip: padding-box;
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.30);
+  background-clip: padding-box;
 }

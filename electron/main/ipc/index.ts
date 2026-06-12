@@ -3,8 +3,8 @@ import { findEveFolder, openFolderDialog, resolveGameFolder } from './folder.js'
 import { detectServers, getServerStatus, inferEsiServer } from './server.js'
 import type { EsiServer } from './types.js'
 import { listProfiles, createProfile, renameProfile, duplicateProfile, deleteProfile } from './profile.js'
-import { listSettings, resolveCharNames, copySettings } from './settings.js'
-import { createBackup, createFileBackup, listBackups, restoreBackup, restoreFileBackup, deleteBackup, deleteFileBackup } from './backup.js'
+import { listSettings, resolveCharNames, copySettings, undoLastCopy, hasUndo } from './settings.js'
+import { createBackup, createFileBackup, listBackups, restoreBackup, restoreFileBackup, deleteBackup, deleteFileBackup, renameBackup } from './backup.js'
 import {
   getDescription, setDescription, deleteDescription,
   getServerFolder, setServerFolder,
@@ -13,6 +13,7 @@ import {
   getCustomEveFolder, setCustomEveFolder,
   getLanguage, setLanguage,
   getTheme, setTheme,
+  getPref, setPref,
 } from './store.js'
 
 export function registerIpcHandlers(): void {
@@ -40,14 +41,17 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('settings:list', (_e, profilePath: string) => listSettings(profilePath))
   ipcMain.handle('settings:resolve-names', (_e, ids: string[], server: EsiServer) => resolveCharNames(ids, server))
   ipcMain.handle('settings:copy', (_e, srcPath: string, destPaths: string[]) => copySettings(srcPath, destPaths))
+  ipcMain.handle('settings:undo-copy', () => undoLastCopy())
+  ipcMain.handle('settings:has-undo', () => hasUndo())
   // ── Backup ─────────────────────────────────────────────────────────────────
-  ipcMain.handle('backup:create', (_e, profilePath: string, name: string) => createBackup(profilePath, name))
-  ipcMain.handle('backup:create-file', (_e, profilePath: string, sourcePath: string, name: string, displayName?: string) => createFileBackup(profilePath, sourcePath, name, displayName))
+  ipcMain.handle('backup:create', (_e, profilePath: string, name: string, source?: string) => createBackup(profilePath, name, source))
+  ipcMain.handle('backup:create-file', (_e, profilePath: string, sourcePath: string, name: string, displayName?: string, source?: string) => createFileBackup(profilePath, sourcePath, name, displayName, source))
   ipcMain.handle('backup:list', () => listBackups())
   ipcMain.handle('backup:restore', (_e, profilePath: string, backupPath: string) => restoreBackup(profilePath, backupPath))
   ipcMain.handle('backup:restore-file', (_e, profilePath: string, backupFilePath: string) => restoreFileBackup(profilePath, backupFilePath))
   ipcMain.handle('backup:delete', (_e, backupPath: string) => deleteBackup(backupPath))
   ipcMain.handle('backup:delete-file', (_e, backupFilePath: string) => deleteFileBackup(backupFilePath))
+  ipcMain.handle('backup:rename', (_e, backupPath: string, newName: string) => renameBackup(backupPath, newName))
 
   // ── Store ──────────────────────────────────────────────────────────────────
   ipcMain.handle('store:get-description', (_e, filename: string) => getDescription(filename))
@@ -65,4 +69,6 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('store:set-language', (_e, lang: string) => setLanguage(lang))
   ipcMain.handle('store:get-theme', () => getTheme())
   ipcMain.handle('store:set-theme', (_e, theme: string) => setTheme(theme))
+  ipcMain.handle('store:get-pref', (_e, key: string) => getPref(key))
+  ipcMain.handle('store:set-pref', (_e, key: string, value: unknown) => setPref(key, value))
 }

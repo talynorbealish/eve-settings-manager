@@ -35,6 +35,7 @@ export interface Backup {
   type: 'folder' | 'file'
   name: string
   displayName?: string
+  source?: string   // e.g. 'Tranquility / Default' — where the backup was taken from
   path: string
   createdAt: number
   fileCount: number

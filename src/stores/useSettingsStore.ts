@@ -56,6 +56,12 @@ export const useSettingsStore = defineStore('settings', () => {
     await loadSettings()
   }
 
+  async function undoLastCopy(): Promise<number> {
+    const n: number = await window.ipcRenderer.invoke('settings:undo-copy')
+    await loadSettings()
+    return n
+  }
+
   async function setDescription(filename: string, value: string) {
     await window.ipcRenderer.invoke('store:set-description', filename, value)
     descriptions.value[filename] = value
@@ -68,6 +74,6 @@ export const useSettingsStore = defineStore('settings', () => {
 
   return {
     charFiles, userFiles, loading, descriptions, charNames,
-    loadSettings, syncSettings, setDescription, deleteDescription,
+    loadSettings, syncSettings, undoLastCopy, setDescription, deleteDescription,
   }
 })

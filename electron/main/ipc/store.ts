@@ -9,6 +9,7 @@ interface StoreSchema {
   customEveFolder: string                // user-selected EVE folder override
   language: string
   theme: string
+  prefs: Record<string, unknown>         // generic UI prefs (copy sets, favorites, last source, last tab)
 }
 
 const defaults: StoreSchema = {
@@ -20,6 +21,7 @@ const defaults: StoreSchema = {
   customEveFolder: '',
   language: 'en',
   theme: '',
+  prefs: {},
 }
 
 let _store: ElectronStore<StoreSchema> | null = null
@@ -110,4 +112,14 @@ export function getTheme(): string {
 
 export function setTheme(theme: string): void {
   store().set('theme', theme)
+}
+
+// ── Generic UI prefs ──────────────────────────────────────────────────────────
+
+export function getPref(key: string): unknown {
+  return store().get('prefs')[key]
+}
+
+export function setPref(key: string, value: unknown): void {
+  store().set('prefs', { ...store().get('prefs'), [key]: value })
 }
