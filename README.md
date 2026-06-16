@@ -131,7 +131,7 @@ Click **Copy to…** on the character whose settings you want to share. The dial
 ### Accounts
 
 The **Accounts** tab lists your account settings files. EVE doesn't expose account login
-names anywhere in the local files (they live only on CCP's servers), so each account shows
+names anywhere in the local files (they live only on Fenris Creations' servers), so each account shows
 its ID by default — but you can type a **friendly name/label** on each one, which is then
 used throughout the app. The same Copy to… / Backup actions are available here.
 
@@ -196,8 +196,9 @@ expanded, safety-oriented workflow. Huge thanks to mintnick (and
 
 ## Disclaimer
 
-EVE Online® and all related names, logos, and assets are the property of CCP Games. This is
-an unofficial, fan-made tool and is not affiliated with or endorsed by CCP Games.
+EVE Online® and all related names, logos, and assets are the property of Fenris Creations
+(formerly CCP Games). This is an unofficial, fan-made tool and is not affiliated with or
+endorsed by Fenris Creations.
 
 ---
 
