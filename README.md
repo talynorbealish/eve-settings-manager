@@ -10,6 +10,10 @@
   <em>A redesigned fork with a modern glassmorphism interface and a reworked, safety-first workflow.</em>
 </p>
 
+<p align="center">
+  <a href="https://github.com/talynorbealish/eve-settings-manager/releases/latest"><strong>⬇ Download</strong></a>
+</p>
+
 ---
 
 ![Characters — dark theme](docs/screenshots/main-dark.png)
@@ -58,12 +62,17 @@ Key features:
 
 ## Getting started
 
-1. Download the latest release for your platform (or [build from source](#building-from-source)).
-   - **Windows** — `.exe`, runs directly, no installation needed.
-   - **macOS** — `.dmg`, open and drag to Applications.
-   - **Linux** — `.AppImage`, make executable and run.
+1. Download the latest build from the
+   [**Releases page**](https://github.com/talynorbealish/eve-settings-manager/releases/latest)
+   (or [build from source](#building-from-source)).
+   - **Windows** — `.exe`, runs directly, no installation needed. *(Currently the prebuilt download.)*
+   - **macOS** — `.dmg`, open and drag to Applications. *(Build from source for now.)*
+   - **Linux** — `.AppImage`, make executable and run. *(Build from source for now.)*
 2. Launch the app. It will try to find your EVE settings folder automatically.
 3. Pick a server and profile at the top, then start managing your characters.
+
+> **Windows note:** the build is not code-signed, so on first launch SmartScreen may show
+> "Windows protected your PC". Click **More info → Run anyway** to continue.
 
 > **macOS note:** if macOS reports the app is "damaged and can't be opened" (it is not
 > code-signed), run this once in Terminal and then open it normally:
